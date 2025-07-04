@@ -10,6 +10,7 @@ let client;
 
 app.use(bodyParser.json());
 
+process.env.CHROME_BIN = require("puppeteer").executablePath();
 wppconnect
   .create({
     session: "familyBot",
@@ -18,8 +19,9 @@ wppconnect
     },
     headless: true,
     devtools: false,
-    useChrome: false,
+    useChrome: true,
     browserArgs: ["--no-sandbox"],
+    executablePath: process.env.CHROME_BIN,
   })
   .then((newClient) => {
     client = newClient;
