@@ -1,11 +1,12 @@
 const express = require("express");
+const puppeteer = require("puppeteer");
 const bodyParser = require("body-parser");
 const wppconnect = require("@wppconnect-team/wppconnect");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
-let client; // global client for access in route
+let client;
 
 app.use(bodyParser.json());
 
@@ -13,7 +14,6 @@ wppconnect
   .create({
     session: "familyBot",
     catchQR: (base64Qrimg, asciiQR) => {
-      console.log("Scan this QR with your phone:");
       console.log(asciiQR);
     },
     headless: true,
@@ -26,7 +26,6 @@ wppconnect
     console.log("WhatsApp is ready!");
   });
 
-// API to send message
 app.post("/send-message", async (req, res) => {
   const { groupName, message } = req.body;
 
@@ -41,7 +40,6 @@ app.post("/send-message", async (req, res) => {
     await client.sendText(group.id._serialized, message);
     res.json({ success: true, sentTo: group.name, message });
   } catch (err) {
-    console.error("Error sending message:", err);
     res.status(500).json({ error: "Failed to send message", details: err });
   }
 });
