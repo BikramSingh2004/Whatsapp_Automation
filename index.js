@@ -48,23 +48,51 @@ wppconnect
     console.log("✅ WhatsApp is ready!");
   });
 
-app.post("/send-message", async (req, res) => {
-  const { groupName, message } = req.body;
+  app.post("/send-message", async (req, res) => {
+    console.log("📩 Incoming POST /send-message");
 
-  try {
-    const chats = await client.listChats();
-    const group = chats.find((chat) => chat.name === groupName && chat.isGroup);
+    const { groupName, message } = req.body;
+    console.log("📦 Request Body:", { groupName, message });
 
-    if (!group) {
-      return res.status(404).json({ error: "Group not found" });
+    if (!client) {
+      console.error("❌ Client is not initialized.");
+      return res.status(500).json({ error: "WhatsApp client not ready" });
     }
 
-    await client.sendText(group.id._serialized, message);
-    res.json({ success: true, sentTo: group.name, message });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to send message", details: err });
-  }
-});
+    try {
+      console.log("📥 Fetching all chats...");
+      const chats = await client.listChats();
+
+      console.log(`✅ Total chats fetched: ${chats.length}`);
+      const groupChats = chats.filter((chat) => chat.isGroup);
+      console.log(
+        "👥 Group chats found:",
+        groupChats.map((g) => g.name)
+      );
+
+      const group = groupChats.find((chat) => chat.name === groupName);
+
+      if (!group) {
+        console.warn(`⚠️ Group '${groupName}' not found in chat list.`);
+        return res.status(404).json({ error: "Group not found" });
+      }
+
+      console.log(
+        `📤 Sending message to group: ${group.name} (${group.id._serialized})`
+      );
+      await client.sendText(group.id._serialized, message);
+
+      console.log("✅ Message sent successfully!");
+      res.json({ success: true, sentTo: group.name, message });
+    } catch (err) {
+      console.error("❌ Error caught during message sending:", err);
+      res.status(500).json({
+        error: "Failed to send message",
+        details: err.message || err,
+      });
+    }
+  });
+  
 
 // ✅ Serve QR file route (optional if you want it manually)
 app.get("/qr", (req, res) => {
