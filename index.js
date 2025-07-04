@@ -14,6 +14,7 @@ process.env.CHROME_BIN = require("puppeteer").executablePath();
 wppconnect
   .create({
     session: "familyBot",
+    autoClose: 0, 
     catchQR: (base64Qrimg, asciiQR) => {
       console.log(asciiQR);
     },
